@@ -12,5 +12,5 @@ return [
         ]
     ],
     'subject' => 'Исключение на сайте '.request()->root(),
-    'sending_interval' => 60,
+    'sending_interval' => 3,
 ];

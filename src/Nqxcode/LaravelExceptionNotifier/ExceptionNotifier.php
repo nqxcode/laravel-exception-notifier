@@ -124,9 +124,7 @@ class ExceptionNotifier implements ExceptionNotifierInterface
             // Flush all view buffers before rendering template of mail
             $this->viewFactory->flushSections();
 
-            if (!$this->runningInConsole) {
-                $this->sendNotification($e, $code);
-            } elseif ($this->exceptionStorage->available()) {
+            if ($this->exceptionStorage->available()) {
                 if (!$this->exceptionStorage->has($e)) {
                     $this->sendNotification($e, $code);
                     $this->exceptionStorage->put($e);
