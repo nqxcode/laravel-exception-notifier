@@ -129,7 +129,7 @@ class ExceptionNotifier implements ExceptionNotifierInterface
      */
     private function createExceptionDumpFile(Throwable $e): string
     {
-        $directory = storage_path('laravel-exception-notifier/attachment');
+        $directory = storage_path('framework/laravel-exception-notifier/attachment');
         if (!File::isDirectory($directory)) {
             File::makeDirectory($directory, 0777, true);
         }
