@@ -3,8 +3,6 @@
 use Facade\FlareClient\Flare;
 use Facade\Ignition\ErrorPage\IgnitionWhoopsHandler;
 use Illuminate;
-use Illuminate\Cache\FileStore as CacheFileStore;
-use Illuminate\Cache\Repository as CacheRepository;
 use Whoops\Run as Whoops;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 

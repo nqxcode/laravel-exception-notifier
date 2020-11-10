@@ -28,6 +28,16 @@
             "tests\\": "tests/"
         }
     },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Nqxcode\\LaravelExceptionNotifier\\ServiceProvider"
+            ],
+            "aliases": {
+                "ExceptionNotifier": "Nqxcode\\LaravelExceptionNotifier\\Facade"
+            }
+        }
+    },
     "suggest": {
         "ext-posix": "Needed for getting the process info, like user name."
     },
