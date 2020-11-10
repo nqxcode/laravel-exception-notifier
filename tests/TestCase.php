@@ -12,8 +12,6 @@ abstract class TestCase extends BaseTestCase
     public function setUp(): void
     {
         parent::setUp();
-
-        $this->app->make('laravel-exception-notifier.cache')->clear();
         $this->app['config']->set('services.telegram-bot-api.token', env('TELEGRAM_BOT_TOKEN', 'YOUR BOT TOKEN HERE'));
     }
 

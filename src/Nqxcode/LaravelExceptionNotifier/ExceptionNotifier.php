@@ -28,7 +28,6 @@ class ExceptionNotifier implements ExceptionNotifierInterface
     private LoggerInterface $logger;
     private ViewFactory $viewFactory;
     private bool $runningInConsole;
-    private ExceptionStorage $exceptionStorage;
     private array $routes;
     private string $subject;
 
@@ -69,14 +68,6 @@ class ExceptionNotifier implements ExceptionNotifierInterface
     public function setRunningInConsole($value): void
     {
         $this->runningInConsole = $value;
-    }
-
-    /**
-     * @param  ExceptionStorage  $exceptionStorage
-     */
-    public function setExceptionStorage(ExceptionStorage $exceptionStorage): void
-    {
-        $this->exceptionStorage = $exceptionStorage;
     }
 
     /**
@@ -123,15 +114,7 @@ class ExceptionNotifier implements ExceptionNotifierInterface
 
             // Flush all view buffers before rendering template of mail
             $this->viewFactory->flushSections();
-
-            if ($this->exceptionStorage->available()) {
-                if (!$this->exceptionStorage->has($e)) {
-                    $this->sendNotification($e, $code);
-                    $this->exceptionStorage->put($e);
-                }
-            } else {
-                $this->sendNotification($e, $code);
-            }
+            $this->sendNotification($e, $code);
         } catch (Throwable $e) {
             $this->logger->alert($e);
             throw $e;

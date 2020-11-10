@@ -40,13 +40,6 @@ class ServiceProvider extends BaseServiceProvider
                     $sender->setWhoops($this->getWhoops());
                     $sender->setLogger($this->app['log']);
                     $sender->setViewFactory($this->app['view']);
-                    $sender->setExceptionStorage(
-                        new ExceptionStorage(
-                            $this->app->make('laravel-exception-notifier.cache'),
-                            config('laravel-exception-notifier.sending_interval')
-                        )
-                    );
-
                     $sender->setRoutes(config('laravel-exception-notifier.routes'));
                     $sender->setSubject(config('laravel-exception-notifier.subject'));
                 });
@@ -54,14 +47,6 @@ class ServiceProvider extends BaseServiceProvider
         );
 
         $this->app->bind('laravel-exception-notifier.exception-notifier', ExceptionNotifierInterface::class);
-        $this->app->singleton('laravel-exception-notifier.cache', function () {
-            return new CacheRepository(
-                new CacheFileStore(
-                    $this->app['files'],
-                    storage_path('laravel-exception-notifier/cache')
-                )
-            );
-        });
     }
 
     /**
