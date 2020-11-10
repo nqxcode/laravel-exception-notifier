@@ -3,7 +3,7 @@
 namespace Nqxcode\LaravelExceptionNotifier;
 
 use Illuminate\Notifications\AnonymousNotifiable;
-use Nqxcode\LaravelExceptionNotifier\Exception\EmptyAlertMailAddress;
+use Nqxcode\LaravelExceptionNotifier\Exception\NoAlertRoutes;
 use Illuminate\Support\Facades\File;
 use Nqxcode\LaravelExceptionNotifier\Notification\Alert;
 use Throwable;
@@ -29,10 +29,8 @@ class ExceptionNotifier implements ExceptionNotifierInterface
     private ViewFactory $viewFactory;
     private bool $runningInConsole;
     private ExceptionStorage $exceptionStorage;
-    /** @var string|string[] */
-    private $alertMailAddress;
-    private string $alertMailSubject;
-    private string $dumpFilename;
+    private array $routes;
+    private string $subject;
 
     /**
      * ExceptionNotifier constructor.
@@ -82,32 +80,25 @@ class ExceptionNotifier implements ExceptionNotifierInterface
     }
 
     /**
-     * @param  string|string[]  $address
+     * @param  array  $routes
      */
-    public function setAlertMailAddress($address): void
+    public function setRoutes(array $routes): void
     {
-        $this->alertMailAddress = $address;
+        $this->routes = $routes;
     }
 
     /**
      * @param  string  $subject
      */
-    public function setAlertMailSubject(string $subject): void
+    public function setSubject(string $subject): void
     {
-        $this->alertMailSubject = $subject;
-    }
-
-    /**
-     * @param  string  $name
-     */
-    public function setDumpFilename(string $name): void
-    {
-        $this->dumpFilename = $name;
+        $this->subject = $subject;
     }
 
     /**
      * @param  Throwable  $e
      * @param  int  $code
+     * @throws Throwable
      */
     public function notify(Throwable $e, int $code = 500): void
     {
@@ -145,29 +136,18 @@ class ExceptionNotifier implements ExceptionNotifierInterface
             }
         } catch (Throwable $e) {
             $this->logger->alert($e);
+            throw $e;
         }
-    }
-
-    /**
-     * @param  Throwable  $e
-     * @return string
-     */
-    private function getExceptionDump(Throwable $e): string
-    {
-        return str_replace('<script src="//', '<script src="http://', $this->whoops->handleException($e));
     }
 
     /**
      * Create tar archive with exception dump.
      *
-     * @param $content
-     * @param $fileName
-     * @return string|null path to `tar` file
+     * @param  Throwable  $e
+     * @return string path to `tar` file
      */
-    private function createExceptionDumpFile(string $content, string $fileName): ?string
+    private function createExceptionDumpFile(Throwable $e): string
     {
-        $filePath = null;
-
         $directory = storage_path('laravel-exception-notifier/attachment');
         if (!File::isDirectory($directory)) {
             File::makeDirectory($directory, 0777, true);
@@ -175,24 +155,17 @@ class ExceptionNotifier implements ExceptionNotifierInterface
 
         do {
             $tarPath = $directory.'/'.uniqid('exception-dump-', true).'.tar';
-        } while (is_file($tarPath));
-
+        } while (File::isFile($tarPath));
 
         $archiveObject = new PharData($tarPath);
 
-        $archiveObject->addFromString("{$fileName}.html", $content);
-        $archiveObject->compress(Phar::GZ);
+        $content = str_replace('<script src="//', '<script src="http://', $this->whoops->handleException($e));
+        $archiveObject->addFromString("exception-dump.html", $content);
+        $gzippedObject = $archiveObject->compress(Phar::GZ);
 
-        if (File::isFile($tarPath)) {
-            File::delete($tarPath);
-        }
+        File::delete($tarPath);
 
-        $gzPath = $tarPath.'.gz';
-        if (File::isFile($gzPath)) {
-            $filePath = $gzPath;
-        }
-
-        return $filePath;
+        return $gzippedObject->getPath();
     }
 
     /**
@@ -200,38 +173,31 @@ class ExceptionNotifier implements ExceptionNotifierInterface
      *
      * @param  Throwable  $e
      * @param $code
-     * @throws EmptyAlertMailAddress|Throwable
+     * @throws NoAlertRoutes|Throwable
      */
     private function sendNotification(Throwable $e, $code): void
     {
-        if (empty($this->alertMailAddress)) {
-            throw new EmptyAlertMailAddress('Alert mail address is empty, dump with exception not sent.');
+        if (empty($this->routes)) {
+            throw new NoAlertRoutes('No alert routes, dump with exception not sent.');
         }
 
-        $exceptionDumpFile = null;
+        $exceptionDumpPath = null;
         try {
-            $exceptionDump = $this->getExceptionDump($e);
-            $exceptionDumpFile = $this->createExceptionDumpFile($exceptionDump, $this->dumpFilename);
+            $exceptionDumpPath = $this->createExceptionDumpFile($e);
 
-            $notification = new AnonymousNotifiable;
-            $notification->route('mail', $this->alertMailAddress);
-            $notification->notify(
-                new Alert(
-                    $e,
-                    $code,
-                    PHP_SAPI,
-                    $this->alertMailSubject,
-                    $exceptionDump,
-                    $exceptionDumpFile,
-                    $this->dumpFilename
-                )
-            );
+            $notification = new AnonymousNotifiable();
+            foreach ($this->routes as $route) {
+                $notification->route($route['channel'], $route['route']);
+            }
 
+            if ($notification !== null) {
+                $notification->notify(new Alert($e, $code, PHP_SAPI, $this->subject, $exceptionDumpPath));
+            }
         } catch (Throwable $exception) {
             throw $exception;
         } finally {
-            if (File::isFile($exceptionDumpFile)) {
-                File::delete($exceptionDumpFile);
+            if (File::isFile($exceptionDumpPath)) {
+                File::delete($exceptionDumpPath);
             }
         }
     }

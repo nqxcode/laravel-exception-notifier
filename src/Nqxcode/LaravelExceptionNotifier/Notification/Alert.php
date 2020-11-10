@@ -2,8 +2,12 @@
 
 namespace Nqxcode\LaravelExceptionNotifier\Notification;
 
+use Illuminate\Notifications\Channels\MailChannel;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use NotificationChannels\Telegram\TelegramChannel;
+use NotificationChannels\Telegram\TelegramFile;
+use NotificationChannels\Telegram\TelegramMessage;
 use Throwable;
 
 class Alert extends Notification
@@ -12,26 +16,20 @@ class Alert extends Notification
     private int $code;
     private string $sapi;
     private string $subject;
-    private string $exceptionDump;
-    private string $exceptionDumpFile;
-    private string $exceptionDumpFilename;
+    private string $exceptionDumpPath;
 
     public function __construct(
         Throwable $throwable,
         int $code,
         string $sapi,
         string $subject,
-        string $exceptionDump,
-        string $exceptionDumpFile,
-        string $exceptionDumpFilename
+        string $exceptionDumpPath
     ) {
         $this->throwable = $throwable;
         $this->code = $code;
         $this->sapi = $sapi;
         $this->subject = $subject;
-        $this->exceptionDump = $exceptionDump;
-        $this->exceptionDumpFile = $exceptionDumpFile;
-        $this->exceptionDumpFilename = $exceptionDumpFilename;
+        $this->exceptionDumpPath = $exceptionDumpPath;
     }
 
     /**
@@ -42,7 +40,7 @@ class Alert extends Notification
      */
     public function via()
     {
-        return ['mail'];
+        return [MailChannel::class, TelegramChannel::class];
     }
 
     /**
@@ -64,12 +62,15 @@ class Alert extends Notification
                 ]
             );
 
-        if (null !== $this->exceptionDumpFile) {
-            $message->attach($this->exceptionDumpFile, ['as' => "{$this->exceptionDumpFilename}.tar.gz"]);
-        } else {
-            $message->attachData($this->exceptionDump, "{$this->exceptionDumpFilename}.html");
-        }
+        $message->attach($this->exceptionDumpPath, ['as' => "exception-dump.tar.gz"]);
 
         return $message;
+    }
+
+    public function toTelegram($notifiable)
+    {
+        return TelegramFile::create()
+            ->content($this->subject)
+            ->document($this->exceptionDumpPath, 'exception-dump.tar.gz');
     }
 }

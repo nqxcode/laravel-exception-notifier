@@ -1,5 +1,5 @@
 <?php
-namespace Feature;
+namespace tests\Feature;
 
 use Illuminate\Support\Facades\Notification;
 use Nqxcode\LaravelExceptionNotifier\Notification\Alert;

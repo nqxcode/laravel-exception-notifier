@@ -11,5 +11,6 @@
     </testsuites>
     <php>
         <server name="MAIL_MAILER" value="log"/>
+        <server name="TELEGRAM_BOT_TOKEN" value="1160101879:AAFzuda0o7X6Dp4RBp00K-7dYjjnwMY124A"/>
     </php>
 </phpunit>

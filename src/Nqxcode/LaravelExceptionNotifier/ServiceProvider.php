@@ -43,13 +43,12 @@ class ServiceProvider extends BaseServiceProvider
                     $sender->setExceptionStorage(
                         new ExceptionStorage(
                             $this->app->make('laravel-exception-notifier.cache'),
-                            config('laravel-exception-notifier.alert_mail.sending_interval')
+                            config('laravel-exception-notifier.sending_interval')
                         )
                     );
 
-                    $sender->setAlertMailAddress(config('laravel-exception-notifier.alert_mail.address'));
-                    $sender->setAlertMailSubject(config('laravel-exception-notifier.alert_mail.subject'));
-                    $sender->setDumpFilename(config('laravel-exception-notifier.dump_file_name'));
+                    $sender->setRoutes(config('laravel-exception-notifier.routes'));
+                    $sender->setSubject(config('laravel-exception-notifier.subject'));
                 });
             }
         );
