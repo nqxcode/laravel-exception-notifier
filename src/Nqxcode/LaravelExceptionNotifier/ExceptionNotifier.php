@@ -1,10 +1,11 @@
-<?php namespace Nqxcode\LaravelExceptionNotifier;
+<?php
 
+namespace Nqxcode\LaravelExceptionNotifier;
+
+use Illuminate\Notifications\AnonymousNotifiable;
 use Nqxcode\LaravelExceptionNotifier\Exception\EmptyAlertMailAddress;
-use Illuminate\Contracts\Mail\Mailer;
-use Illuminate\Mail\Message;
 use Illuminate\Support\Facades\File;
-use Nqxcode\LaravelExceptionNotifier\Mail\Alert;
+use Nqxcode\LaravelExceptionNotifier\Notification\Alert;
 use Throwable;
 use Illuminate\View\Factory as ViewFactory;
 use InvalidArgumentException;
@@ -25,14 +26,13 @@ class ExceptionNotifier implements ExceptionNotifierInterface
 {
     private Whoops $whoops;
     private LoggerInterface $logger;
-    private Mailer $mailer;
     private ViewFactory $viewFactory;
     private bool $runningInConsole;
     private ExceptionStorage $exceptionStorage;
     /** @var string|string[] */
     private $alertMailAddress;
     private string $alertMailSubject;
-    private string $dumpFileName;
+    private string $dumpFilename;
 
     /**
      * ExceptionNotifier constructor.
@@ -42,7 +42,7 @@ class ExceptionNotifier implements ExceptionNotifierInterface
     }
 
     /**
-     * @param Whoops $whoops
+     * @param  Whoops  $whoops
      */
     public function setWhoops(Whoops $whoops): void
     {
@@ -50,7 +50,7 @@ class ExceptionNotifier implements ExceptionNotifierInterface
     }
 
     /**
-     * @param LoggerInterface $logger
+     * @param  LoggerInterface  $logger
      */
     public function setLogger(LoggerInterface $logger): void
     {
@@ -58,15 +58,7 @@ class ExceptionNotifier implements ExceptionNotifierInterface
     }
 
     /**
-     * @param Mailer $mailer
-     */
-    public function setMailer(Mailer $mailer): void
-    {
-        $this->mailer = $mailer;
-    }
-
-    /**
-     * @param ViewFactory $viewFactory
+     * @param  ViewFactory  $viewFactory
      */
     public function setViewFactory(ViewFactory $viewFactory): void
     {
@@ -82,7 +74,7 @@ class ExceptionNotifier implements ExceptionNotifierInterface
     }
 
     /**
-     * @param ExceptionStorage $exceptionStorage
+     * @param  ExceptionStorage  $exceptionStorage
      */
     public function setExceptionStorage(ExceptionStorage $exceptionStorage): void
     {
@@ -90,7 +82,7 @@ class ExceptionNotifier implements ExceptionNotifierInterface
     }
 
     /**
-     * @param string|string[] $address
+     * @param  string|string[]  $address
      */
     public function setAlertMailAddress($address): void
     {
@@ -98,7 +90,7 @@ class ExceptionNotifier implements ExceptionNotifierInterface
     }
 
     /**
-     * @param string $subject
+     * @param  string  $subject
      */
     public function setAlertMailSubject(string $subject): void
     {
@@ -106,11 +98,11 @@ class ExceptionNotifier implements ExceptionNotifierInterface
     }
 
     /**
-     * @param string $name
+     * @param  string  $name
      */
-    public function setDumpFileName(string $name): void
+    public function setDumpFilename(string $name): void
     {
-        $this->dumpFileName = $name;
+        $this->dumpFilename = $name;
     }
 
     /**
@@ -132,7 +124,7 @@ class ExceptionNotifier implements ExceptionNotifierInterface
 
                 // For incorrect arguments or options of commands NOT send mail with alert
                 if ($e instanceof RuntimeException || $e instanceof LogicException) {
-                    if (dirname($e->getFile()) === dirname($consoleAppFile) . '/Input') {
+                    if (dirname($e->getFile()) === dirname($consoleAppFile).'/Input') {
                         return;
                     }
                 }
@@ -141,24 +133,28 @@ class ExceptionNotifier implements ExceptionNotifierInterface
             // Flush all view buffers before rendering template of mail
             $this->viewFactory->flushSections();
 
-            // TODO Disable sending to bcc addresses
-            $this->mailer->bcc([]);
-
             if (!$this->runningInConsole) {
-                $this->sendMail($e, $code);
-
+                $this->sendNotification($e, $code);
             } elseif ($this->exceptionStorage->available()) {
                 if (!$this->exceptionStorage->has($e)) {
-                    $this->sendMail($e, $code);
+                    $this->sendNotification($e, $code);
                     $this->exceptionStorage->put($e);
                 }
             } else {
-                $this->sendMail($e, $code);
+                $this->sendNotification($e, $code);
             }
-
         } catch (Throwable $e) {
             $this->logger->alert($e);
         }
+    }
+
+    /**
+     * @param  Throwable  $e
+     * @return string
+     */
+    private function getExceptionDump(Throwable $e): string
+    {
+        return str_replace('<script src="//', '<script src="http://', $this->whoops->handleException($e));
     }
 
     /**
@@ -168,39 +164,32 @@ class ExceptionNotifier implements ExceptionNotifierInterface
      * @param $fileName
      * @return string|null path to `tar` file
      */
-    private function archive(string $content, string $fileName): ?string
+    private function createExceptionDumpFile(string $content, string $fileName): ?string
     {
         $filePath = null;
 
-        if (class_exists(PharData::class, true)) {
-            try {
-                $directory = storage_path('laravel-exception-notifier/attachment');
-                if (!File::isDirectory($directory)) {
-                    File::makeDirectory($directory, 0777, true);
-                }
+        $directory = storage_path('laravel-exception-notifier/attachment');
+        if (!File::isDirectory($directory)) {
+            File::makeDirectory($directory, 0777, true);
+        }
 
-                do {
-                    $tarPath = $directory . '/' . uniqid('exception-dump-', true) . '.tar';
-                } while (is_file($tarPath));
+        do {
+            $tarPath = $directory.'/'.uniqid('exception-dump-', true).'.tar';
+        } while (is_file($tarPath));
 
 
-                $archiveObject = new PharData($tarPath);
+        $archiveObject = new PharData($tarPath);
 
-                $archiveObject->addFromString("{$fileName}.html", $content);
-                $archiveObject->compress(Phar::GZ);
+        $archiveObject->addFromString("{$fileName}.html", $content);
+        $archiveObject->compress(Phar::GZ);
 
-                if (File::isFile($tarPath)) {
-                    File::delete($tarPath);
-                }
+        if (File::isFile($tarPath)) {
+            File::delete($tarPath);
+        }
 
-                $gzPath = $tarPath . '.gz';
-                if (File::isFile($gzPath)) {
-                    $filePath = $gzPath;
-                }
-
-            } catch (Throwable $e) {
-                $this->logger->alert($e);
-            }
+        $gzPath = $tarPath.'.gz';
+        if (File::isFile($gzPath)) {
+            $filePath = $gzPath;
         }
 
         return $filePath;
@@ -209,48 +198,40 @@ class ExceptionNotifier implements ExceptionNotifierInterface
     /**
      * Send mail with exception.
      *
-     * @param Throwable $e
+     * @param  Throwable  $e
      * @param $code
      * @throws EmptyAlertMailAddress|Throwable
      */
-    private function sendMail(Throwable $e, $code): void
+    private function sendNotification(Throwable $e, $code): void
     {
-        // Get alert email address
-
         if (empty($this->alertMailAddress)) {
             throw new EmptyAlertMailAddress('Alert mail address is empty, dump with exception not sent.');
         }
 
-        $archivedDumpFile = null;
+        $exceptionDumpFile = null;
         try {
-            $this->mailer->send(
-                new Alert($e, $code, PHP_SAPI),
-                [],
-                function (Message $message) use ($e, &$archivedDumpFile) {
-                    $message->to($this->alertMailAddress);
-                    $message->subject($this->alertMailSubject);
+            $exceptionDump = $this->getExceptionDump($e);
+            $exceptionDumpFile = $this->createExceptionDumpFile($exceptionDump, $this->dumpFilename);
 
-                    $errorDumpContent = str_replace(
-                        '<script src="//',
-                        '<script src="http://',
-                        $this->whoops->handleException($e)
-                    );
-
-                    $archivedDumpFile = $this->archive($errorDumpContent, $this->dumpFileName);
-
-                    if (null !== $archivedDumpFile) {
-                        $message->attach($archivedDumpFile, ['as' => "{$this->dumpFileName}.tar.gz"]);
-                    } else {
-                        $message->attachData($errorDumpContent, "{$this->dumpFileName}.html");
-                    }
-                }
+            $notification = new AnonymousNotifiable;
+            $notification->route('mail', $this->alertMailAddress);
+            $notification->notify(
+                new Alert(
+                    $e,
+                    $code,
+                    PHP_SAPI,
+                    $this->alertMailSubject,
+                    $exceptionDump,
+                    $exceptionDumpFile,
+                    $this->dumpFilename
+                )
             );
 
         } catch (Throwable $exception) {
             throw $exception;
         } finally {
-            if (File::isFile($archivedDumpFile)) {
-                File::delete($archivedDumpFile);
+            if (File::isFile($exceptionDumpFile)) {
+                File::delete($exceptionDumpFile);
             }
         }
     }

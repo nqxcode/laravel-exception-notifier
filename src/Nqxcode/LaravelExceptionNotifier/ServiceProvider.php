@@ -40,7 +40,6 @@ class ServiceProvider extends BaseServiceProvider
                     $sender->setWhoops($this->getWhoops());
                     $sender->setLogger($this->app['log']);
                     $sender->setViewFactory($this->app['view']);
-                    $sender->setMailer($this->app['mailer']);
                     $sender->setExceptionStorage(
                         new ExceptionStorage(
                             $this->app->make('laravel-exception-notifier.cache'),
@@ -50,7 +49,7 @@ class ServiceProvider extends BaseServiceProvider
 
                     $sender->setAlertMailAddress(config('laravel-exception-notifier.alert_mail.address'));
                     $sender->setAlertMailSubject(config('laravel-exception-notifier.alert_mail.subject'));
-                    $sender->setDumpFileName(config('laravel-exception-notifier.dump_file_name'));
+                    $sender->setDumpFilename(config('laravel-exception-notifier.dump_file_name'));
                 });
             }
         );

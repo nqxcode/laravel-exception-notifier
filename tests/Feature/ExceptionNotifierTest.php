@@ -1,8 +1,8 @@
 <?php
 namespace Feature;
 
-use Illuminate\Support\Facades\Mail;
-use Nqxcode\LaravelExceptionNotifier\Mail\Alert;
+use Illuminate\Support\Facades\Notification;
+use Nqxcode\LaravelExceptionNotifier\Notification\Alert;
 use tests\TestCase;
 use ExceptionNotifier;
 
@@ -10,10 +10,10 @@ class ExceptionNotifierTest extends TestCase
 {
     public function testNotify(): void
     {
-        Mail::fake();
+        Notification::fake();
 
         ExceptionNotifier::notify(new \Exception('test'));
 
-        Mail::assertSent(Alert::class, 1);
+        Notification::assertTimesSent( 1, Alert::class);
     }
 }
