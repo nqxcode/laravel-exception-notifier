@@ -97,14 +97,14 @@ class ExceptionNotifier implements ExceptionNotifierInterface
             if ($this->runningInConsole) {
                 $consoleAppFile = (new ReflectionClass(SymfonyConsoleApplication::class))->getFileName();
 
-                // For unknown or ambiguous commands NOT send mail with alert
+                // For unknown or ambiguous commands NOT send notification
                 if ($e instanceof InvalidArgumentException) {
                     if ($e->getFile() === $consoleAppFile) {
                         return;
                     }
                 }
 
-                // For incorrect arguments or options of commands NOT send mail with alert
+                // For incorrect arguments or options of commands NOT send notification
                 if ($e instanceof RuntimeException || $e instanceof LogicException) {
                     if (dirname($e->getFile()) === dirname($consoleAppFile).'/Input') {
                         return;

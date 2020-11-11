@@ -12,7 +12,7 @@
     <php>
         <server name="MAIL_MAILER" value="log"/>
         <server name="TELEGRAM_BOT_TOKEN" value="1160101879:AAFzuda0o7X6Dp4RBp00K-7dYjjnwMY124A"/>
-        <server name="EXCEPTION_NOTIFIER_MAIL" value="nc101ux@gmail.com"/>
-        <server name="EXCEPTION_NOTIFIER_TELEGRAM" value="423460627"/>
+        <server name="EXCEPTION_NOTIFIER_EMAIL" value="nc101ux@gmail.com"/>
+        <server name="EXCEPTION_NOTIFIER_TELEGRAM_USER_ID" value="423460627"/>
     </php>
 </phpunit>

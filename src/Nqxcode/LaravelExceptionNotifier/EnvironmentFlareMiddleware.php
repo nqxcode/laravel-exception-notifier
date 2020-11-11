@@ -11,7 +11,7 @@ class EnvironmentFlareMiddleware
     /**
      * @var bool
      */
-    private $runningInConsole;
+    private bool $runningInConsole;
 
     /**
      * Handle report.
@@ -36,7 +36,7 @@ class EnvironmentFlareMiddleware
      *
      * @param $value
      */
-    public function setRunningInConsole($value)
+    public function setRunningInConsole($value): void
     {
         $this->runningInConsole = $value;
     }
@@ -46,7 +46,7 @@ class EnvironmentFlareMiddleware
      *
      * @return array
      */
-    private function getContextGroups()
+    private function getContextGroups(): array
     {
         $contextGroups = [];
 
