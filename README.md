@@ -1,5 +1,4 @@
 # Laravel exception notifier
-==============
 Notify about exception in laravel project via telegram and email.
 
 ## Installation
