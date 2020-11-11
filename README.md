@@ -52,7 +52,7 @@ return [
 ];
 ```
 
-In ```.env``` add environment variables like followings:
+In ```.env``` add correct environment variables:
 ```ini
 EXCEPTION_NOTIFIER_EMAIL=test@test.com
 EXCEPTION_NOTIFIER_TELEGRAM_USER_ID=423460522
