@@ -17,7 +17,7 @@ Publish the config file into your project by running:
 php artisan vendor:publish --provider="Nqxcode\LaravelExceptionNotifier\ServiceProvider"
 ```
 
-Change default config file  ```config/laravel-exception-notifier.php``` if it is needed: 
+Change default config file  ```config/laravel-exception-notifier.php```, for example remove unnecessary channel: 
 
 ```php
 <?php
@@ -52,6 +52,13 @@ return [
 ];
 ```
 
+In ```.env``` add environment variables like followings:
+```ini
+EXCEPTION_NOTIFIER_EMAIL=test@test.com
+EXCEPTION_NOTIFIER_TELEGRAM_USER_ID=423460522
+TELEGRAM_BOT_TOKEN=1160101879:AAFzuda0o7X6Dp4RBp00K-7dYjjnwMY887A
+
+```
 
 To notify about exception for ```production``` environment in file ```app/Exceptions/Handler.php``` modify ```report``` method:
 
