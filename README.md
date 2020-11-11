@@ -33,7 +33,7 @@ return [
             'route' => env('EXCEPTION_NOTIFIER_TELEGRAM_USER_ID', '1234567890')
         ]
     ],
-    'subject' => 'Исключение на сайте '.request()->root(),
+    'subject' => 'Исключение на сайте '.env('APP_URL'),
 ];
 
 ```
