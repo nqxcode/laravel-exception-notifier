@@ -1,6 +1,8 @@
 {
     "name": "nqxcode/laravel-exception-notifier",
-    "description": "Notify about exception in laravel project",
+    "description": "Notify about exception in laravel project via telegram and email",
+    "keywords": ["laravel", "exception", "notification", "telegram", "email"],
+    "license": "MIT",
     "authors": [
         {
             "name": "Andrey Pokoev",
