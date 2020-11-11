@@ -117,7 +117,6 @@ class ExceptionNotifier implements ExceptionNotifierInterface
             $this->sendNotification($e, $code);
         } catch (Throwable $e) {
             $this->logger->alert($e);
-            throw $e;
         }
     }
 
