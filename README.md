@@ -1,7 +1,7 @@
 # Laravel exception notifier
 Notify about exception in laravel project via telegram and email.
 
-Notification attachment contains gzipped html with exception dump that rendered with [facade/ignition](https://github.com/facade/ignition), for example:
+Notification attachment contains **gzipped html** with **exception dump** that rendered with [facade/ignition](https://github.com/facade/ignition), for example:
 
 ![Screenshot_2020-11-12 🧨 Token could not be parsed from the request ](https://user-images.githubusercontent.com/5667387/98933663-02a53880-24f2-11eb-9701-56bcc3982354.png)
 
