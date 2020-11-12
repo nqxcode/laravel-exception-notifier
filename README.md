@@ -1,5 +1,5 @@
 # Laravel exception notifier
-Notify about exception in laravel project via telegram and email.
+Notify about exception in laravel project via **telegram** and **email**.
 
 Notification attachment contains **gzipped html** with **exception dump** that rendered with [facade/ignition](https://github.com/facade/ignition), for example:
 
