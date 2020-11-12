@@ -71,6 +71,6 @@ class Alert extends Notification
     {
         return TelegramFile::create()
             ->content($this->subject)
-            ->document($this->exceptionDumpPath, 'exception-dump.tar.gz');
+            ->document($this->exceptionDumpPath, 'exception-dump' . date('Y-m-d-H-i-s') .'.tar.gz');
     }
 }
