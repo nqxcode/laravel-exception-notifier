@@ -61,7 +61,6 @@ In ```.env``` add correct environment variables:
 # For email notification
 EXCEPTION_NOTIFIER_EMAIL=test@test.com
 
-
 # For telegram notification
 # recipient
 EXCEPTION_NOTIFIER_TELEGRAM_USER_ID=423460522
