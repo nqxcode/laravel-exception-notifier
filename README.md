@@ -58,11 +58,19 @@ return [
 
 In ```.env``` add correct environment variables:
 ```ini
+# For email notification
 EXCEPTION_NOTIFIER_EMAIL=test@test.com
+
+
+# For telegram notification
+# recipient
 EXCEPTION_NOTIFIER_TELEGRAM_USER_ID=423460522
+# sender
 TELEGRAM_BOT_TOKEN=1160101879:AAFzuda0o7X6Dp4RBp00K-7dYjjnwMY887A
 
 ```
+To get **telegram bot token** create new bot in ```BotFather``` with this action ```/newbot```, see more details [here](https://core.telegram.org/bots#3-how-do-i-create-a-bot).
+
 
 To notify about exception for ```production``` environment in file ```app/Exceptions/Handler.php``` modify ```report``` method:
 
