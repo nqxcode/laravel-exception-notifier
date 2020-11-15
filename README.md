@@ -7,7 +7,7 @@ Notification attachment contains **gzipped html** with **exception dump** that r
 
 ## Installation
 
-Require this package in your composer.json and run composer update:
+Require this package in your composer.json:
 
 ```bash
 composer require "nqxcode/laravel-exception-notifier"
